@@ -182,12 +182,18 @@ def dump_payload3(payload):
         print("{} ({}): {} {}".format(k, key_map[k], v, suffix))
 
 
-dumpivs = False
-ivs = []
+def do_dumpivs(ivs):
+    print("IV data:")
+    for iv in ivs:
+        print("\"", end="")
+        for b in iv:
+            print("\\x{:02x}".format(b), end="")
+        print("\"", end="")
+        print(" \\")
 
 
-def dump_payload4(payload):
-    global dumpivs, ivs
+def dump_payload4(payload, dumpivs=False):
+    ivs = []
 
     blob_subtype = payload[0]
     print("blob_subtype: {} ({})".format(
@@ -233,6 +239,9 @@ def dump_payload4(payload):
                     print("    {} ({}): {}".format(ek, key_map[ek], ev))
             continue
         print("{} ({}): {} {}".format(k, key_map[k], v, suffix))
+
+    if dumpivs:
+        do_dumpivs(ivs)
 
 
 def dump_payload5(payload):
@@ -380,6 +389,7 @@ def dump_payload10(payload):
  *edgeCount ))
  *
  * struct {
+    #  What is ClientEncryptedValue_length?
  *   uint64_t length; // length is sizeof(K_KeyId) + ClientEncryptedValue_length.
  *   uint8_t[length] cipherText; // K_KeyId + Encrypt(K_KeyId, value),
  *   uint32_t edgeCount;
@@ -392,11 +402,8 @@ def dump_payload10(payload):
  *}
  """
 
-decrypt = False
 
-
-def dump_payload9(payload):
-    global decrypt
+def dump_payload9(payload, decrypt=False):
     blob_subtype = payload[0]
     print("blob_subtype: {} ({})".format(
         payload[0], blob_subtype_to_string(blob_subtype)))
@@ -476,8 +483,10 @@ def infer_base64_or_hex(input: str, encoding):
     return base64.b64decode(input)
 
 
-def dump_payload(input: str, encoding="unknown"):
+def dump_payload(input: str, encoding="unknown", decrypt=False, dumpivs=False):
     payload = infer_base64_or_hex(input, encoding)
+    supports_decrypt = False
+    supports_dumpivs = False
     if payload[0] == 1 or payload[0] == 2:
         dump_payload1or2(payload)
     elif payload[0] == 0:
@@ -485,7 +494,8 @@ def dump_payload(input: str, encoding="unknown"):
     elif payload[0] == 3:
         dump_payload3(payload)
     elif payload[0] == 4:
-        dump_payload4(payload)
+        supports_dumpivs = True
+        dump_payload4(payload, dumpivs=dumpivs)
     elif payload[0] == 5:
         dump_payload5(payload)
     elif payload[0] == 6:
@@ -495,17 +505,21 @@ def dump_payload(input: str, encoding="unknown"):
     elif payload[0] == 10:
         dump_payload10(payload)
     elif payload[0] == 9:
-        dump_payload9(payload)
+        supports_decrypt = True
+        dump_payload9(payload, decrypt=decrypt)
     else:
         raise RuntimeError(
             "Do not know how to decode payload with first byte {}".format(payload[0]))
 
+    if decrypt and not supports_decrypt:
+        raise RuntimeError(
+            "--decrypt specified, but not supported for payload type {}".format(payload[0]))
+    if dumpivs and not supports_dumpivs:
+        raise RuntimeError(
+            "--dumpivs specified, but not supported for payload type {}".format(payload[0]))
+
 
 def main():
-    global dumpivs, ivs
-
-    global decrypt
-
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("payload", help="Payload string. May be hex or base64")
@@ -524,23 +538,8 @@ def main():
     if args.infile:
         with open(args.payload, "r") as file:
             input = file.read()
-    encoding = "unknown"
-    if args.base64:
-        encoding = "base64"
-    if args.hex:
-        encoding = "hex"
-    dumpivs = args.dumpivs
-    decrypt = args.decrypt
-    dump_payload(input, encoding)
-
-    if dumpivs:
-        print("IV data:")
-        for iv in ivs:
-            print("\"", end="")
-            for b in iv:
-                print("\\x{:02x}".format(b), end="")
-            print("\"", end="")
-            print(" \\")
+    dump_payload(input, encoding="base64" if args.base64 else "unknown",
+                 dumpivs=args.dumpivs, decrypt=args.decrypt)
 
 
 if __name__ == "__main__":
