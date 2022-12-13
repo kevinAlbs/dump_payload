@@ -164,7 +164,8 @@ def dump_payload3(payload):
 
     as_bson = bson.decode(payload)
     from bson import json_util
-    print (json_util.dumps (as_bson, json_options=json_util.JSONOptions(json_mode = json_util.JSONMode.CANONICAL)))
+    print(json_util.dumps(as_bson, json_options=json_util.JSONOptions(
+        json_mode=json_util.JSONMode.CANONICAL)))
     key_map = {
         "t": "type",
         "a": "algorithm",
@@ -299,7 +300,8 @@ def dump_payload7(payload):
         original_bson_type, bson_type_to_string(original_bson_type)))
     print("InnerEncrypted={}".format(InnerEncrypted.hex()))
 
-def _dump_FLE2FindRangePayloadEdgesInfo_g (g):
+
+def _dump_FLE2FindRangePayloadEdgesInfo_g(g):
     key_map = {
         "d": "EDCDerivedFromDataToken",
         "s": "ESCDerivedFromDataToken",
@@ -315,7 +317,8 @@ def _dump_FLE2FindRangePayloadEdgesInfo_g (g):
                 ev = ev.hex()
             print("      {} ({}): {}".format(ek, key_map[ek], ev))
 
-def _dump_FLE2FindRangePayloadEdgesInfo (payload):
+
+def _dump_FLE2FindRangePayloadEdgesInfo(payload):
     for k, v in payload.items():
         key_map = {
             "cm": "Queryable Encryption max counter",
@@ -324,11 +327,12 @@ def _dump_FLE2FindRangePayloadEdgesInfo (payload):
         }
         if k == "g":
             print("  {} ({}):".format(k, key_map[k]))
-            _dump_FLE2FindRangePayloadEdgesInfo_g (v)
+            _dump_FLE2FindRangePayloadEdgesInfo_g(v)
             continue
         if type(v) == bytes:
             v = v.hex()
         print("  {} ({}): {}".format(k, key_map[k], v))
+
 
 def dump_payload10(payload):
     blob_subtype = payload[0]
@@ -356,10 +360,11 @@ def dump_payload10(payload):
             v = v.hex()
         if k == "payload":
             if k in ["firstOperator", "secondOperator"]:
-                print("{} ({} ({})):".format(k, key_map[k], operatorMap[key_map[k]]))
+                print("{} ({} ({})):".format(
+                    k, key_map[k], operatorMap[key_map[k]]))
             else:
                 print("{} ({}):".format(k, key_map[k]))
-            _dump_FLE2FindRangePayloadEdgesInfo (v)
+            _dump_FLE2FindRangePayloadEdgesInfo(v)
             continue
         print("{} ({}): {}".format(k, key_map[k], v))
 
