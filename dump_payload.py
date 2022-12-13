@@ -242,8 +242,6 @@ def dump_payload5(payload):
 
     payload = payload[1:]
     as_bson = bson.decode(payload)
-
-    as_bson = bson.decode(payload)
     key_map = {
         "d": "EDCDerivedFromDataToken",
         "s": "ESCDerivedFromDataToken",
