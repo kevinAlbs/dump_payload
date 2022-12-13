@@ -1,3 +1,16 @@
+"""
+Dump In-Use Encryption payloads to text.
+
+In-Use Encryption consists of Client-Side Field Level Encryption and Queryable Encryption.
+In-Use Encryption makes use of the BSON binary subtype 6 in its protocol.
+
+Example usage:
+$ dump_payload.py ADgAAAAQYQABAAAABWtpABAAAAAEYWFhYWFhYWFhYWFhYWFhYQJ2AAwAAAA0NTctNTUtNTQ2MgAA
+blob_subtype: 0 (FLE1EncryptionPlaceholder)
+a (algorithm): 1 (Deterministic)
+ki (keyId): b'aaaaaaaaaaaaaaaa' 
+v (value): 457-55-5462
+"""
 import struct
 import fle2_crypto
 import argparse
@@ -493,7 +506,8 @@ def main():
 
     global decrypt
 
-    parser = argparse.ArgumentParser(description="Dump FLE payloads")
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("payload", help="Payload string. May be hex or base64")
     parser.add_argument("--base64", action="store_true",
                         help="Specify payload as base64")
