@@ -163,9 +163,6 @@ def dump_payload3(payload):
     payload = payload[1:]
 
     as_bson = bson.decode(payload)
-    from bson import json_util
-    print(json_util.dumps(as_bson, json_options=json_util.JSONOptions(
-        json_mode=json_util.JSONMode.CANONICAL)))
     key_map = {
         "t": "type",
         "a": "algorithm",
