@@ -117,6 +117,11 @@ def bson_type_to_string(bson_type):
 
 
 def dump_payload1or2(payload):
+    """
+    Dump an FLE1RandomEncryptedValue or FLE1DeterministicEncryptedValue.
+    See https://github.com/mongodb/specifications/blob/3634d568587a776f18885502cde4f26f1c0ac051/source/client-side-encryption/subtype6.rst#types-1-and-2-ciphertext
+    for a description of the byte layout.
+    """
     blob_subtype = payload[0]
     print("blob_subtype: {} ({})".format(
         blob_subtype, blob_subtype_to_string(blob_subtype)))
@@ -136,6 +141,11 @@ def dump_payload1or2(payload):
 
 
 def dump_payload0(payload):
+    """
+    Dump an FLE1EncryptionPlaceholder.
+    See https://github.com/mongodb/specifications/blob/3634d568587a776f18885502cde4f26f1c0ac051/source/client-side-encryption/subtype6.rst#type-0-intent-to-encrypt-marking
+    for a description of the byte layout.
+    """
     blob_subtype = payload[0]
     print("blob_subtype: {} ({})".format(
         blob_subtype, blob_subtype_to_string(blob_subtype)))
@@ -157,6 +167,11 @@ def dump_payload0(payload):
 
 
 def dump_payload3(payload):
+    """
+    Dump an FLE2EncryptionPlaceholder.
+    See https://github.com/mongodb/mongo/blob/a17007e3c4ecfd2e7a211ff9d98673dd37d87d0f/src/mongo/crypto/fle_field_schema.idl#L142
+    for a description of the BSON fields.
+    """
     blob_subtype = payload[0]
     print("blob_subtype: {} ({})".format(
         payload[0], blob_subtype_to_string(blob_subtype)))
@@ -193,6 +208,11 @@ def do_dumpivs(ivs):
 
 
 def dump_payload4(payload, dumpivs=False):
+    """
+    Dump an FLE2InsertUpdatePayload.
+    See https://github.com/mongodb/mongo/blob/a17007e3c4ecfd2e7a211ff9d98673dd37d87d0f/src/mongo/crypto/fle_field_schema.idl#L201
+    for a description of the BSON fields.
+    """
     ivs = []
 
     blob_subtype = payload[0]
@@ -245,6 +265,11 @@ def dump_payload4(payload, dumpivs=False):
 
 
 def dump_payload5(payload):
+    """
+    Dump an FLE2FindEqualityPayload.
+    See https://github.com/mongodb/mongo/blob/a17007e3c4ecfd2e7a211ff9d98673dd37d87d0f/src/mongo/crypto/fle_field_schema.idl#L256
+    for a description of the BSON fields.
+    """
     blob_subtype = payload[0]
     print("blob_subtype: {} ({})".format(
         payload[0], blob_subtype_to_string(blob_subtype)))
@@ -267,6 +292,11 @@ def dump_payload5(payload):
 
 
 def dump_payload6(payload):
+    """
+    Dump an FLE2UnindexedEncryptedValue.
+    See https://github.com/mongodb/libmongocrypt/blob/66cec2c721c4f658b30fdaf2a4c844397feccffe/src/mc-fle2-payload-uev-private.h#L24
+    for a description of the layout.
+    """
     blob_subtype = payload[0]
     print("blob_subtype: {} ({})".format(
         payload[0], blob_subtype_to_string(blob_subtype)))
@@ -283,16 +313,15 @@ def dump_payload6(payload):
 
 
 def dump_payload7(payload):
+    """
+    Dump an FLE2IndexedEqualityEncryptedValue.
+    See https://github.com/mongodb/libmongocrypt/blob/66cec2c721c4f658b30fdaf2a4c844397feccffe/src/mc-fle2-payload-iev-private.h#L37-L65
+    for a description of the layout.
+    """
     blob_subtype = payload[0]
     print("blob_subtype: {} ({})".format(
         payload[0], blob_subtype_to_string(blob_subtype)))
     payload = payload[1:]
-#  * struct {
-#  *   uint8_t fle_blob_subtype = 7;
-#  *   uint8_t S_KeyId[16];
-#  *   uint8_t original_bson_type;
-#  *   uint8_t InnerEncrypted[InnerEncrypted_length];
-#  * } FLE2IndexedEqualityEncryptedValue
     S_KeyId = payload[0:16]
     payload = payload[16:]
     original_bson_type = payload[0]
@@ -339,6 +368,11 @@ def _dump_FLE2FindRangePayloadEdgesInfo(payload):
 
 
 def dump_payload10(payload):
+    """
+    Dump an FLE2FindRangePayload.
+    See https://github.com/mongodb/mongo/blob/a17007e3c4ecfd2e7a211ff9d98673dd37d87d0f/src/mongo/crypto/fle_field_schema.idl#L317-L336
+    for a description of the BSON fields.
+    """
     blob_subtype = payload[0]
     print("blob_subtype: {} ({})".format(
         payload[0], blob_subtype_to_string(blob_subtype)))
@@ -373,37 +407,12 @@ def dump_payload10(payload):
         print("{} ({}): {}".format(k, key_map[k], v))
 
 
-"""
- * Class to read/write FLE2 Range Indexed Encrypted Values
- *
- * Fields are encrypted with the following:
- *
- * struct {
- *   uint8_t fle_blob_subtype = 9;
- *   uint8_t key_uuid[16]; // Also referred to as IndexKey or S_KeyID.
- *   uint8  original_bson_type;
- *   ciphertext[ciphertext_length];
- * }
- *
- * Encrypt(ServerDataEncryptionLevel1Token, Struct(K_KeyId, v, edgeCount, [count, d, s, c] x
- *edgeCount ))
- *
- * struct {
-    #  What is ClientEncryptedValue_length?
- *   uint64_t length; // length is sizeof(K_KeyId) + ClientEncryptedValue_length.
- *   uint8_t[length] cipherText; // K_KeyId + Encrypt(K_KeyId, value),
- *   uint32_t edgeCount;
- *   struct {
- *      uint64_t counter;
- *      uint8_t[32] edc;  // EDCDerivedFromDataTokenAndContentionFactorToken
- *      uint8_t[32] esc;  // ESCDerivedFromDataTokenAndContentionFactorToken
- *      uint8_t[32] ecc;  // ECCDerivedFromDataTokenAndContentionFactorToken
- *   } edges[edgeCount];
- *}
- """
-
-
 def dump_payload9(payload, decrypt=False):
+    """
+    Dump an FLE2IndexedRangeEncryptedValue.
+    See https://github.com/mongodb/libmongocrypt/blob/66cec2c721c4f658b30fdaf2a4c844397feccffe/src/mc-fle2-payload-iev-private.h#L67-L83
+    for a description of the layout.
+    """
     blob_subtype = payload[0]
     print("blob_subtype: {} ({})".format(
         payload[0], blob_subtype_to_string(blob_subtype)))
