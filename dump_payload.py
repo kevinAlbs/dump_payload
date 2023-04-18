@@ -39,6 +39,18 @@ def blob_subtype_to_string(blob_subtype):
         return "FLE2IndexedRangeEncryptedValue"
     elif blob_subtype == 10:
         return "FLE2FindRangePayload"
+    elif blob_subtype == 11:
+        return "FLE2InsertUpdatePayloadV2"
+    elif blob_subtype == 12:
+        return "FLE2FindEqualityPayloadV2"
+    elif blob_subtype == 13:
+        return "FLE2FindRangePayloadV2"
+    elif blob_subtype == 14:
+        return "FLE2EqualityIndexedValueV2"
+    elif blob_subtype == 15:
+        return "FLE2RangeIndexedValueV2"
+    elif blob_subtype == 16:
+        return "FLE2UnindexedEncryptedValueV2"
     else:
         raise RuntimeError(
             "{} has no string name. Please add one.".format(blob_subtype))
@@ -516,6 +528,24 @@ def dump_payload(input: str, encoding="unknown", decrypt=False, dumpivs=False):
     elif payload[0] == 9:
         supports_decrypt = True
         dump_payload9(payload, decrypt=decrypt)
+    elif payload[0] == 11:
+        print("Got payload type: {}. Do not know how to decode.".format(
+            blob_subtype_to_string(payload[0])))
+    elif payload[0] == 12:
+        print("Got payload type: {}. Do not know how to decode.".format(
+            blob_subtype_to_string(payload[0])))
+    elif payload[0] == 13:
+        print("Got payload type: {}. Do not know how to decode.".format(
+            blob_subtype_to_string(payload[0])))
+    elif payload[0] == 14:
+        print("Got payload type: {}. Do not know how to decode.".format(
+            blob_subtype_to_string(payload[0])))
+    elif payload[0] == 15:
+        print("Got payload type: {}. Do not know how to decode.".format(
+            blob_subtype_to_string(payload[0])))
+    elif payload[0] == 16:
+        print("Got payload type: {}. Do not know how to decode.".format(
+            blob_subtype_to_string(payload[0])))
     else:
         raise RuntimeError(
             "Do not know how to decode payload with first byte {}".format(payload[0]))
