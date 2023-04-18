@@ -19,12 +19,12 @@ import bson
 
 
 def blob_subtype_to_string(blob_subtype):
-    if blob_subtype == 1:
+    if blob_subtype == 0:
+        return "FLE1EncryptionPlaceholder"
+    elif blob_subtype == 1:
         return "FLE1DeterministicEncryptedValue"
     elif blob_subtype == 2:
         return "FLE1RandomEncryptedValue"
-    elif blob_subtype == 0:
-        return "FLE1EncryptionPlaceholder"
     elif blob_subtype == 3:
         return "FLE2EncryptionPlaceholder"
     elif blob_subtype == 4:
@@ -35,10 +35,10 @@ def blob_subtype_to_string(blob_subtype):
         return "FLE2UnindexedEncryptedValue"
     elif blob_subtype == 7:
         return "FLE2IndexedEqualityEncryptedValue"
-    elif blob_subtype == 10:
-        return "FLE2FindRangePayload"
     elif blob_subtype == 9:
         return "FLE2IndexedRangeEncryptedValue"
+    elif blob_subtype == 10:
+        return "FLE2FindRangePayload"
     else:
         raise RuntimeError(
             "{} has no string name. Please add one.".format(blob_subtype))
